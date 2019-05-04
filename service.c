@@ -4,13 +4,16 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <errno.h>
+#include <string.h>
 
 #define BUFFER_SIZE 1024
-#define on_error(...) { fprintf(stderr, __VA_ARGS__); fflush(stderr); exit(1); }
+#define on_error(...) { fprintf(stderr, __VA_ARGS__); perror("ERROR"); fflush(stderr); exit(1); }
 
 struct weather {
 	float temperature, humidity;
 };
+extern int errno;
 
 int main (int argc, char *argv[]) {
   if (argc < 2) on_error("Usage: %s [port]\n", argv[0]);
@@ -21,6 +24,7 @@ int main (int argc, char *argv[]) {
   struct sockaddr_in server, client;
   struct weather current_weather;
   char buf[BUFFER_SIZE];
+  
 
   server_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (server_fd < 0) on_error("Could not create socket\n");
@@ -46,16 +50,17 @@ int main (int argc, char *argv[]) {
 
     if (client_fd < 0) on_error("Could not establish new connection\n");
 
-    while (1) {
+    
       //int read = recv(client_fd, buf, BUFFER_SIZE, 0);
 
       //if (!read) break; // done reading
       //if (read < 0) on_error("Client read failed\n");
 	  current_weather.temperature = 26.2;
-	  current_weather.humidity = 82.2;	
-      err = send(client_fd, &current_weather, sizeof(current_weather), 0);
-      if (err < 0) on_error("Client write failed with errorcode: %d\n", err);
-    }
+	  current_weather.humidity = 82.2;
+      sprintf (buf, "Humidity = %.1f %% Temperature = %.1f *C \n", current_weather.humidity, current_weather.temperature); 
+      err = send(client_fd, buf, strlen(buf), 0);
+      if (err < 0) on_error("Client write failed with errorcode: %d\n", errno);
+      shutdown(client_fd, 2);
   }
 
   return 0;
