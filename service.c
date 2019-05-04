@@ -51,10 +51,10 @@ int main (int argc, char *argv[]) {
 
       //if (!read) break; // done reading
       //if (read < 0) on_error("Client read failed\n");
-	  current_weather.temperature = 26.2
-	  current_weather.humidity = 82.2	
+	  current_weather.temperature = 26.2;
+	  current_weather.humidity = 82.2;	
       err = send(client_fd, &current_weather, sizeof(current_weather), 0);
-      if (err < 0) on_error("Client write failed\n");
+      if (err < 0) on_error("Client write failed with errorcode: %d\n", err);
     }
   }
 
