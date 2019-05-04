@@ -7,12 +7,14 @@
 #include <errno.h>
 #include <string.h>
 
+#include "hardware.h"
+
 #define BUFFER_SIZE 1024
 #define on_error(...) { fprintf(stderr, __VA_ARGS__); perror("ERROR"); fflush(stderr); exit(1); }
 
-struct weather {
-	float temperature, humidity;
-};
+// struct weather {
+// 	float temperature, humidity;
+// };
 extern int errno;
 
 int main (int argc, char *argv[]) {
@@ -22,7 +24,8 @@ int main (int argc, char *argv[]) {
 
   int server_fd, client_fd, err;
   struct sockaddr_in server, client;
-  struct weather current_weather;
+  // struct weather current_weather;
+  struct weather w;
   char buf[BUFFER_SIZE];
   
 
@@ -55,9 +58,11 @@ int main (int argc, char *argv[]) {
 
       //if (!read) break; // done reading
       //if (read < 0) on_error("Client read failed\n");
-	  current_weather.temperature = 26.2;
-	  current_weather.humidity = 82.2;
-      sprintf (buf, "Humidity = %.1f %% Temperature = %.1f *C \n", current_weather.humidity, current_weather.temperature); 
+    w = getCurrentWeather();
+    //printf( "Humidity = %.1f %% Temperature = %.1f *C \n", w.humidity, w.temperature);
+	  // current_weather.temperature = 26.2;
+	  // current_weather.humidity = 82.2;
+      sprintf (buf, "Humidity = %.1f %% Temperature = %.1f *C \n", w.humidity, w.temperature); 
       err = send(client_fd, buf, strlen(buf), 0);
       if (err < 0) on_error("Client write failed with errorcode: %d\n", errno);
       shutdown(client_fd, 2);

@@ -4,16 +4,12 @@
 #include <stdint.h>
 #include <pthread.h>
 
+#include "hardware.h"
  
 #define MAX_TIMINGS 85
 #define DHT_PIN 7
 int data[5] = { 0, 0, 0, 0, 0 };
  
-struct weather {
-    float temperature, humidity;
-};
-
-static struct weather current_weather;
 
 static void setCurrentWeather(float temperature, float humidity) {
     pthread_mutex_lock(&my_lock);
@@ -108,25 +104,12 @@ static void* _workerThreadProc(void* rawArg) {
 }
  
 
-
-int main( void ) {
-    printf( "DHT22 temperature/humidity test\n" );
- 
+int setup() {
     if ( wiringPiSetup() == -1 )
-        exit(1);
+        return 1;
  
     if(pthread_create(&thr, (void *)0, _workerThreadProc, (void*)arg) != 0) {
         printf("%s\n", "error creating thread");
-        exit(-1);
+        return 1;
     }
-
-    struct weather w;
-    while(1) {
-        w = getCurrentWeather();
-        printf( "Humidity = %.1f %% Temperature = %.1f *C \n", w.humidity, w.temperature);
-        delay(100);
-    }
-    
-    return 0;
 }
-
