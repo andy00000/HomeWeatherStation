@@ -8,8 +8,11 @@
  
 #define MAX_TIMINGS 85
 #define DHT_PIN 7
+
 int data[5] = { 0, 0, 0, 0, 0 };
- 
+
+static pthread_t thr;
+static pthread_mutex_t my_lock;
 
 static void setCurrentWeather(float temperature, float humidity) {
     pthread_mutex_lock(&my_lock);
@@ -90,9 +93,6 @@ static void read_dht_data() {
 
     }
 }
-
-static pthread_t thr;
-static pthread_mutex_t my_lock;
 
 static void* _workerThreadProc(void* rawArg) {
     while ( 1 ) {
