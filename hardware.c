@@ -21,7 +21,7 @@ static void setCurrentWeather(float temperature, float humidity) {
     pthread_mutex_unlock(&my_lock);
 }
 
-static weather getCurrentWeather() {
+struct weather getCurrentWeather() {
     struct weather tempWeather;
     pthread_mutex_lock(&my_lock);
     tempWeather = current_weather;
@@ -112,4 +112,5 @@ int setup() {
         printf("%s\n", "error creating thread");
         return 1;
     }
+    return 0;
 }

@@ -20,6 +20,8 @@ extern int errno;
 int main (int argc, char *argv[]) {
   if (argc < 2) on_error("Usage: %s [port]\n", argv[0]);
 
+  setup();
+
   int port = atoi(argv[1]);
 
   int server_fd, client_fd, err;
