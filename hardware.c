@@ -2,18 +2,43 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <pthread.h>
+
  
 #define MAX_TIMINGS 85
 #define DHT_PIN 7
 int data[5] = { 0, 0, 0, 0, 0 };
  
+struct weather {
+    float temperature, humidity;
+};
+
+static struct weather current_weather;
+
+static void setCurrentWeather(float temperature, float humidity) {
+    pthread_mutex_lock(&my_lock);
+    current_weather.temperature = temperature;
+    current_weather.humidity = humidity;
+    pthread_mutex_unlock(&my_lock);
+}
+
+static weather getCurrentWeather() {
+    struct weather tempWeather;
+    pthread_mutex_lock(&my_lock);
+    tempWeather = current_weather;
+    pthread_mutex_unlock(&my_lock);
+    return tempWeather;   
+}
+
 static void read_dht_data() {
     uint8_t laststate = HIGH;
     uint8_t counter = 0;
     uint8_t j = 0, i;
  
     data[0] = data[1] = data[2] = data[3] = data[4] = 0;
- 
+    
+    pthread_detach(pthread_self());
+    
     /* pull pin down for 18 milliseconds */
     pinMode(DHT_PIN, OUTPUT);
     digitalWrite( DHT_PIN, LOW);
@@ -64,20 +89,44 @@ static void read_dht_data() {
         if ( data[2] & 0x80 ) {
             c = -c;
         }
-        printf( "Humidity = %.1f %% Temperature = %.1f *C \n", h, c );
+        setCurrentWeather(c, h);
+        // printf( "Humidity = %.1f %% Temperature = %.1f *C \n", h, c );
+
     }
 }
+
+static pthread_t thr;
+static pthread_mutex_t my_lock;
+
+static void* _workerThreadProc(void* rawArg) {
+    while ( 1 ) {
+        read_dht_data();
+        delay(1000); /* wait 2 seconds before next read */
+    }
+
+    pthread_exit((void *)0);
+}
  
+
+
 int main( void ) {
     printf( "DHT22 temperature/humidity test\n" );
  
     if ( wiringPiSetup() == -1 )
-        exit( 1 );
+        exit(1);
  
-    while ( 1 ) {
-        read_dht_data();
-        delay(4000); /* wait 2 seconds before next read */
+    if(pthread_create(&thr, (void *)0, _workerThreadProc, (void*)arg) != 0) {
+        printf("%s\n", "error creating thread");
+        exit(-1);
     }
-    return(0);
+
+    struct weather w;
+    while(1) {
+        w = getCurrentWeather();
+        printf( "Humidity = %.1f %% Temperature = %.1f *C \n", w.humidity, w.temperature);
+        delay(100);
+    }
+    
+    return 0;
 }
 
