@@ -100,7 +100,7 @@ static void* _workerThreadProc(void* rawArg) {
         delay(1000); /* wait 2 seconds before next read */
     }
 
-    pthread_exit((void *)0);
+    pthread_exit(NULL);
 }
  
 
@@ -108,7 +108,7 @@ int setup() {
     if ( wiringPiSetup() == -1 )
         return 1;
  
-    if(pthread_create(&thr, (void *)0, _workerThreadProc, (void*)arg) != 0) {
+    if(pthread_create(&thr, NULL, _workerThreadProc, NULL) != 0) {
         printf("%s\n", "error creating thread");
         return 1;
     }
